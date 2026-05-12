@@ -1,0 +1,38 @@
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    // Custom comparator to sort tasks by their "surplus" requirement descending
+    static bool comp(const vector<int>& a, const vector<int>& b) {
+        return (a[1] - a[0]) > (b[1] - b[0]);
+    }
+    
+    int minimumEffort(vector<vector<int>>& tasks) {
+        // Step 1: Sort tasks greedily
+        sort(tasks.begin(), tasks.end(), comp);
+        
+        int initialEnergy = 0;
+        int currentEnergy = 0;
+        
+        // Step 2: Simulate task completion
+        for (const auto& task : tasks) {
+            int actual = task[0];
+            int minRequired = task[1];
+            
+            // If we don't have enough energy to start this task, 
+            // we must have started with more energy initially.
+            if (currentEnergy < minRequired) {
+                initialEnergy += (minRequired - currentEnergy);
+                currentEnergy = minRequired; 
+            }
+            
+            // Deduct the energy actually spent on the task
+            currentEnergy -= actual;
+        }
+        
+        return initialEnergy;
+    }
+};
