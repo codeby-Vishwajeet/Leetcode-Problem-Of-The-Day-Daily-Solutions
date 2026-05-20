@@ -1,0 +1,34 @@
+#include <vector>
+
+using namespace std;
+
+class Solution {
+public:
+    vector<int> findThePrefixCommonArray(vector<int>& A, vector<int>& B) {
+        int n = A.size();
+        vector<int> C(n);
+        
+        // frequency array to track occurrences (size n + 1 since numbers are 1 to n)
+        vector<int> freq(n + 1, 0); 
+        int common_count = 0;
+        
+        for (int i = 0; i < n; ++i) {
+            // Process element from A
+            freq[A[i]]++;
+            if (freq[A[i]] == 2) {
+                common_count++;
+            }
+            
+            // Process element from B
+            freq[B[i]]++;
+            if (freq[B[i]] == 2) {
+                common_count++;
+            }
+            
+            // Record the number of common elements at this prefix
+            C[i] = common_count;
+        }
+        
+        return C;
+    }
+};
