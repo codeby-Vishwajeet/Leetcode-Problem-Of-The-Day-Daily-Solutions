@@ -1,0 +1,38 @@
+#include <vector>
+#include <unordered_set>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    int longestCommonPrefix(vector<int>& arr1, vector<int>& arr2) {
+        unordered_set<int> prefixes;
+        
+        // Step 1: Store all prefixes of elements in arr1
+        for (int x : arr1) {
+            while (x > 0) {
+                prefixes.insert(x);
+                x /= 10;
+            }
+        }
+        
+        int max_len = 0;
+        
+        // Step 2: Check prefixes of elements in arr2 against the set
+        for (int y : arr2) {
+            while (y > 0) {
+                // The first match is guaranteed to be the longest for this specific 'y'
+                if (prefixes.count(y)) {
+                    int len = to_string(y).length();
+                    max_len = max(max_len, len);
+                    break; // Stop checking shorter prefixes for this y
+                }
+                y /= 10;
+            }
+        }
+        
+        return max_len;
+    }
+};
