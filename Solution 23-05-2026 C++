@@ -1,0 +1,22 @@
+class Solution {
+public:
+    bool check(vector<int>& nums) {
+        int n = nums.size();
+        int drops = 0;
+        
+        for (int i = 0; i < n; i++) {
+            // Check if the current element is greater than the next element.
+            // (i + 1) % n wraps around to 0 when i is the last index.
+            if (nums[i] > nums[(i + 1) % n]) {
+                drops++;
+            }
+            
+            // If we find more than one drop, it's invalid
+            if (drops > 1) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+};
