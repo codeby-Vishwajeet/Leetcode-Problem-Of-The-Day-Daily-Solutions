@@ -1,0 +1,39 @@
+#include <iostream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+class Solution {
+public:
+    bool canReach(string s, int minJump, int maxJump) {
+        int n = s.length();
+        
+        // Quick optimization: If the last character is '1', we can never reach it.
+        if (s[n - 1] == '1') return false; 
+        
+        vector<bool> dp(n, false);
+        dp[0] = true;
+        
+        int available = 0; // Number of valid jump points in our current window
+        
+        for (int i = 1; i < n; i++) {
+            // Add the index that just entered our [minJump, maxJump] window
+            if (i >= minJump && dp[i - minJump]) {
+                available++;
+            }
+            
+            // Remove the index that just exited our [minJump, maxJump] window
+            if (i > maxJump && dp[i - maxJump - 1]) {
+                available--;
+            }
+            
+            // If there's at least one valid jump point available and current char is '0'
+            if (available > 0 && s[i] == '0') {
+                dp[i] = true;
+            }
+        }
+        
+        return dp[n - 1];
+    }
+};
