@@ -1,0 +1,35 @@
+class Solution {
+public:
+    int numberOfSpecialChars(string word) {
+        // Arrays to store the target indices, initialized to -1 (not found)
+        vector<int> lastLower(26, -1);
+        vector<int> firstUpper(26, -1);
+        
+        // Populate the last seen index for lowercase and first seen for uppercase
+        for (int i = 0; i < word.length(); i++) {
+            char c = word[i];
+            
+            if (c >= 'a' && c <= 'z') {
+                // Constantly update to keep the last occurrence index
+                lastLower[c - 'a'] = i; 
+            } else if (c >= 'A' && c <= 'Z') {
+                // Only update if we haven't seen this uppercase letter yet
+                if (firstUpper[c - 'A'] == -1) {
+                    firstUpper[c - 'A'] = i;
+                }
+            }
+        }
+        
+        int specialCount = 0;
+        
+        // Check all 26 letters of the English alphabet
+        for (int i = 0; i < 26; i++) {
+            // Check if both exist and if the last lowercase is before the first uppercase
+            if (lastLower[i] != -1 && firstUpper[i] != -1 && lastLower[i] < firstUpper[i]) {
+                specialCount++;
+            }
+        }
+        
+        return specialCount;
+    }
+};
