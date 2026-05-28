@@ -1,0 +1,90 @@
+#include <vector>
+#include <string>
+
+using namespace std;
+
+class Solution {
+    // Array-based TrieNode
+    struct TrieNode {
+        int children[26];
+        int best_idx;
+        
+        TrieNode(int idx) {
+            // Initialize all child indices to -1 (representing null)
+            for (int i = 0; i < 26; ++i) {
+                children[i] = -1;
+            }
+            best_idx = idx;
+        }
+    };
+
+public:
+    vector<int> stringIndices(vector<string>& wordsContainer, vector<string>& wordsQuery) {
+        int min_len = 1e9;
+        int best_overall = -1;
+        
+        // Find the best string overall for queries with zero matching suffix
+        for (int i = 0; i < wordsContainer.size(); ++i) {
+            if (wordsContainer[i].length() < min_len) {
+                min_len = wordsContainer[i].length();
+                best_overall = i;
+            } else if (wordsContainer[i].length() == min_len && i < best_overall) {
+                best_overall = i;
+            }
+        }
+        
+        // Initialize the vector-based Trie
+        vector<TrieNode> trie;
+        // Pre-allocate memory to prevent reallocations (max sum of lengths is 5 * 10^5)
+        trie.reserve(500005); 
+        trie.push_back(TrieNode(best_overall)); // Root node at index 0
+        
+        // Build the Trie
+        for (int i = 0; i < wordsContainer.size(); ++i) {
+            int curr = 0; // Start at root
+            const string& w = wordsContainer[i];
+            
+            for (int j = w.length() - 1; j >= 0; --j) {
+                int c = w[j] - 'a';
+                
+                // If child doesn't exist, create it
+                if (trie[curr].children[c] == -1) {
+                    trie[curr].children[c] = trie.size();
+                    trie.push_back(TrieNode(i));
+                }
+                
+                // Move to the child node
+                curr = trie[curr].children[c];
+                
+                // Update the best_idx for this prefix path
+                int old_idx = trie[curr].best_idx;
+                int old_len = wordsContainer[old_idx].length();
+                int new_len = w.length();
+                
+                if (new_len < old_len || (new_len == old_len && i < old_idx)) {
+                    trie[curr].best_idx = i;
+                }
+            }
+        }
+        
+        // Process queries
+        vector<int> ans;
+        ans.reserve(wordsQuery.size());
+        
+        for (const string& q : wordsQuery) {
+            int curr = 0; // Start at root
+            
+            for (int j = q.length() - 1; j >= 0; --j) {
+                int c = q[j] - 'a';
+                if (trie[curr].children[c] != -1) {
+                    curr = trie[curr].children[c];
+                } else {
+                    break; 
+                }
+            }
+            ans.push_back(trie[curr].best_idx);
+        }
+        
+        return ans;
+    }
+};
