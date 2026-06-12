@@ -1,40 +1,109 @@
+#include <vector>
+
+using namespace std;
+
 class Solution {
+    int LOG;
+    int MOD = 1e9 + 7;
+    vector<vector<int>> up;
+    vector<int> depth;
+    
+    // Precompute LCA table and depths
+    void dfs(int u, int p, int d, const vector<vector<int>>& adj) {
+        depth[u] = d;
+        up[u][0] = p; // The 2^0 (1st) ancestor is the parent
+        
+        for (int i = 1; i < LOG; i++) {
+            up[u][i] = up[up[u][i - 1]][i - 1];
+        }
+        
+        for (int v : adj[u]) {
+            if (v != p) {
+                dfs(v, u, d + 1, adj);
+            }
+        }
+    }
+    
+    // Find Lowest Common Ancestor using Binary Lifting
+    int getLCA(int u, int v) {
+        // Ensure u is deeper than v
+        if (depth[u] < depth[v]) {
+            swap(u, v);
+        }
+        
+        // Equalize depths
+        int diff = depth[u] - depth[v];
+        for (int i = 0; i < LOG; i++) {
+            if ((diff >> i) & 1) {
+                u = up[u][i];
+            }
+        }
+        
+        if (u == v) return u;
+        
+        // Climb together
+        for (int i = LOG - 1; i >= 0; i--) {
+            if (up[u][i] != up[v][i]) {
+                u = up[u][i];
+                v = up[v][i];
+            }
+        }
+        
+        return up[u][0];
+    }
+    
+    // Fast modular exponentiation
+    long long modPow(long long base, long long exp) {
+        long long res = 1;
+        base %= MOD;
+        while (exp > 0) {
+            if (exp % 2 == 1) res = (res * base) % MOD;
+            base = (base * base) % MOD;
+            exp /= 2;
+        }
+        return res;
+    }
+
 public:
-    int kSubstr(string s, int k) {
-        int n = s.length();
+    vector<int> assignEdgeWeights(vector<vector<int>>& edges, vector<vector<int>>& queries) {
+        int n = edges.size() + 1; // Since it's a tree, nodes = edges + 1
+        vector<vector<int>> adj(n + 1);
         
-        // If string length is not a multiple of k, it cannot be divided perfectly
-        if (n % k != 0) {
-            return 0;
+        // Build adjacency list
+        for (const auto& edge : edges) {
+            adj[edge[0]].push_back(edge[1]);
+            adj[edge[1]].push_back(edge[0]);
         }
         
-        unordered_map<string, int> freqMap;
+        // Calculate max LOG needed for N nodes
+        LOG = 0;
+        while ((1 << LOG) <= n) {
+            LOG++;
+        }
         
-        // Traverse string in chunks of size k
-        for (int i = 0; i < n; i += k) {
-            string sub = s.substr(i, k);
-            freqMap[sub]++;
+        up.assign(n + 1, vector<int>(LOG, 0));
+        depth.assign(n + 1, 0);
+        
+        // Root the tree arbitrarily at node 1
+        dfs(1, 1, 0, adj);
+        
+        vector<int> ans;
+        ans.reserve(queries.size());
+        
+        for (const auto& q : queries) {
+            int u = q[0];
+            int v = q[1];
             
-            // Optimization: If we find more than 2 unique substrings, 
-            // 1 replacement will never be enough to fix it.
-            if (freqMap.size() > 2) {
-                return 0;
+            int lca = getLCA(u, v);
+            int k = depth[u] + depth[v] - 2 * depth[lca]; // Number of edges in path
+            
+            if (k == 0) {
+                ans.push_back(0);
+            } else {
+                ans.push_back(modPow(2, k - 1));
             }
         }
         
-        // If there's only 1 unique substring, it's already perfect
-        if (freqMap.size() == 1) {
-            return 1;
-        }
-        
-        // If there are exactly 2 unique substrings, one of them MUST appear exactly once
-        for (auto& pair : freqMap) {
-            if (pair.second == 1) {
-                return 1;
-            }
-        }
-        
-        // If we have 2 unique substrings but both appear more than once (e.g., abcdabcd)
-        return 0;
+        return ans;
     }
 };
